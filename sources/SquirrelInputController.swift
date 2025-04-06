@@ -427,6 +427,7 @@ private extension SquirrelInputController {
   func rimeUpdate() {
     // print("[DEBUG] rimeUpdate")
     rimeConsumeCommittedText()
+    notifyInputMode()
 
     var status = RimeStatus_stdbool.rimeStructInit()
     if rimeAPI.get_status(session, &status) {
@@ -563,5 +564,13 @@ private extension SquirrelInputController {
       panel.update(preedit: preedit, selRange: selRange, caretPos: caretPos, candidates: candidates, comments: comments, labels: labels,
                    highlighted: highlighted, page: page, lastPage: lastPage, update: true)
     }
+  }
+  
+  // 通知系统状态栏更新模式显示
+  func notifyInputMode() {
+    let isAscii =  rimeAPI.get_option(session, "ascii_mode")
+      NotificationCenter.default.post(name: Notification.Name("SquirrelInputModeChanged"),
+                                      object: nil,
+                                      userInfo: ["ascii": isAscii])
   }
 }

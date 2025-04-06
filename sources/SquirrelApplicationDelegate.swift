@@ -13,6 +13,8 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   static let rimeWikiURL = URL(string: "https://github.com/rime/home/wiki")!
   static let updateNotificationIdentifier = "SquirrelUpdateNotification"
   static let notificationIdentifier = "SquirrelNotification"
+  var statusItem: NSStatusItem!
+
 
   let rimeAPI: RimeApi_stdbool = rime_get_api_stdbool().pointee
   var config: SquirrelConfig?
@@ -55,6 +57,18 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   func applicationWillFinishLaunching(_ notification: Notification) {
     panel = SquirrelPanel(position: .zero)
     addObservers()
+    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    statusItem.button?.title = "中" // 默认初始显示
+    NotificationCenter.default.addObserver(
+        forName: Notification.Name("SquirrelInputModeChanged"),
+        object: nil,
+        queue: .main
+    ) { [weak self] notification in
+        guard let self = self else { return }
+        if let isAscii = notification.userInfo?["ascii"] as? Bool {
+            self.statusItem.button?.title = isAscii ? "ABC" : "中"
+        }
+    }
   }
 
   func applicationWillTerminate(_ notification: Notification) {
