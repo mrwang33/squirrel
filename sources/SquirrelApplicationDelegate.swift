@@ -66,7 +66,7 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
     ) { [weak self] notification in
         guard let self = self else { return }
         if let isAscii = notification.userInfo?["ascii"] as? Bool {
-            self.statusItem.button?.title = isAscii ? "ABC" : "中"
+            self.statusItem.button?.title = isAscii ? "英" : "中"
         }
     }
   }

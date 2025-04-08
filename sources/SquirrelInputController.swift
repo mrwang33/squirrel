@@ -10,6 +10,7 @@ import InputMethodKit
 final class SquirrelInputController: IMKInputController {
   private static let keyRollOver = 50
   private static var unknownAppCnt: UInt = 0
+  private static var isAscii = true;
 
   private weak var client: IMKTextInput?
   private let rimeAPI: RimeApi_stdbool = rime_get_api_stdbool().pointee
@@ -72,6 +73,7 @@ final class SquirrelInputController: IMKInputController {
         // so it is necessary to revert kLockMask.
         rimeModifiers ^= kLockMask.rawValue
         _ = processKey(rimeKeycode, modifiers: rimeModifiers)
+        notifyInputMode()
       }
 
       // Need to process release before modifier down. Because
@@ -334,6 +336,7 @@ private extension SquirrelInputController {
   }
 
   func createSession() {
+    print("[DEBUG] create session")
     let app = client?.bundleIdentifier() ?? {
       SquirrelInputController.unknownAppCnt &+= 1
       return "UnknownApp\(SquirrelInputController.unknownAppCnt)"
@@ -346,6 +349,8 @@ private extension SquirrelInputController {
     if session != 0 {
       updateAppOptions()
     }
+    rimeAPI.set_option(session, "ascii_mode", SquirrelInputController.isAscii)
+//    notifyInputMode()
   }
 
   func updateAppOptions() {
@@ -393,6 +398,7 @@ private extension SquirrelInputController {
       if isVimBackInCommandMode && rimeAPI.get_option(session, "vim_mode") &&
           !rimeAPI.get_option(session, "ascii_mode") {
         rimeAPI.set_option(session, "ascii_mode", true)
+        notifyInputMode()
         // print("[DEBUG] turned Chinese mode off in vim-like editor's command mode")
       }
     } else {
@@ -409,7 +415,7 @@ private extension SquirrelInputController {
         clearChord()
       }
     }
-
+    
     return handled
   }
 
@@ -427,7 +433,6 @@ private extension SquirrelInputController {
   func rimeUpdate() {
     // print("[DEBUG] rimeUpdate")
     rimeConsumeCommittedText()
-    notifyInputMode()
 
     var status = RimeStatus_stdbool.rimeStructInit()
     if rimeAPI.get_status(session, &status) {
@@ -569,7 +574,9 @@ private extension SquirrelInputController {
   // 通知系统状态栏更新模式显示
   func notifyInputMode() {
     let isAscii =  rimeAPI.get_option(session, "ascii_mode")
-      NotificationCenter.default.post(name: Notification.Name("SquirrelInputModeChanged"),
+    SquirrelInputController.isAscii = isAscii
+    print("[INFO] isAscii \(isAscii), session:\(session.hashValue)")
+    NotificationCenter.default.post(name: Notification.Name("SquirrelInputModeChanged"),
                                       object: nil,
                                       userInfo: ["ascii": isAscii])
   }
