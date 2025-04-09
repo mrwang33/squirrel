@@ -171,7 +171,7 @@ final class SquirrelInputController: IMKInputController {
 
   override func activateServer(_ sender: Any!) {
     self.client ?= sender as? IMKTextInput
-    // print("[DEBUG] activateServer:")
+    print("[DEBUG] activateServer:")
     var keyboardLayout = NSApp.squirrelAppDelegate.config?.getString("keyboard_layout") ?? ""
     if keyboardLayout == "last" || keyboardLayout == "" {
       keyboardLayout = ""
@@ -184,6 +184,8 @@ final class SquirrelInputController: IMKInputController {
       client?.overrideKeyboard(withKeyboardNamed: keyboardLayout)
     }
     preedit = ""
+    rimeAPI.set_option(session, "ascii_mode", SquirrelInputController.isAscii)
+    notifyInputMode()
   }
 
   override init!(server: IMKServer!, delegate: Any!, client: Any!) {
@@ -350,7 +352,7 @@ private extension SquirrelInputController {
       updateAppOptions()
     }
     rimeAPI.set_option(session, "ascii_mode", SquirrelInputController.isAscii)
-//    notifyInputMode()
+    notifyInputMode()
   }
 
   func updateAppOptions() {
